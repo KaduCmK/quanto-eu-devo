@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "600733064538",
+    "project_id": "quanto-eu-devo",
+    "storage_bucket": "quanto-eu-devo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600733064538:android:5a503be103ccaf351d2763",
+        "android_client_info": {
+          "package_name": "com.example.quantoeudevo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "600733064538-d9jgrefroqtdpchajdcj3lq8mpat5kq9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.quantoeudevo",
+            "certificate_hash": "b9dda69d1ac915df83b1a4f3e27d2652b16d36b1"
+          }
+        },
+        {
+          "client_id": "600733064538-pqbv4gcr1mthlaskojpg77t66l5mpu2a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcwuUaF4HwP25io4qOKeMbXJ6WZRODczs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "600733064538-7fddpnh5623u0pd1mav9ga4978g43mlb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,8 +1,5 @@
 package com.example.quantoeudevo.tela_inicial.presentation
 
-import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
@@ -20,11 +17,11 @@ class TelaInicialViewModel @Inject constructor() : ViewModel() {
 
     fun onEvent(uiEvent: TelaInicialUiEvent) {
         when (uiEvent) {
-            is TelaInicialUiEvent.OnFinanceiroClick -> {
+            is TelaInicialUiEvent.OnClick -> {
 
             }
 
-            is TelaInicialUiEvent.onLongClick -> {
+            is TelaInicialUiEvent.OnLongClick -> {
 
             }
         }
