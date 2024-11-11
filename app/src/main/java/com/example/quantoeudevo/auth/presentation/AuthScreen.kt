@@ -18,25 +18,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.quantoeudevo.TelaInicialScreen
+import com.example.quantoeudevo.auth.data.model.AuthUiEvent
 import com.example.quantoeudevo.auth.data.model.AuthUiState
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
 
 @Composable
-fun AuthScreenRoot(modifier: Modifier = Modifier) {
+fun AuthScreenRoot(modifier: Modifier = Modifier, navController: NavController) {
     val viewModel: AuthViewModel = hiltViewModel()
     AuthScreen(
         modifier = modifier,
+        navController = navController,
         uiState = viewModel.uiState.collectAsState().value,
-        onLogin = viewModel::handleGoogleSignIn
+        onEvent = viewModel::onEvent
     )
 }
 
 @Composable
-fun AuthScreen(modifier: Modifier = Modifier, uiState: AuthUiState, onLogin: () -> Unit) {
-    LaunchedEffect(key1 = Unit) {
-        onLogin()
-    }
-
+fun AuthScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    uiState: AuthUiState,
+    onEvent: (AuthUiEvent) -> Unit
+) {
     Surface {
         Column(
             modifier = modifier.fillMaxSize(),
@@ -44,15 +50,20 @@ fun AuthScreen(modifier: Modifier = Modifier, uiState: AuthUiState, onLogin: () 
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text("Fazer Login", style = MaterialTheme.typography.displayMedium)
-            Button(onClick = onLogin) {
+            Button(onClick = { onEvent(AuthUiEvent.OnGoogleSignIn) }) {
                 Icon(imageVector = Icons.AutoMirrored.Default.Login, contentDescription = null)
                 Text("Login com Google")
             }
             when (uiState) {
-                is AuthUiState.Ready -> { }
+                is AuthUiState.Ready -> {}
                 is AuthUiState.Loading -> Text("Carregando...")
                 is AuthUiState.Error -> Text("Erro: ${(uiState).message}")
-                is AuthUiState.Success -> Text("Logado como ${uiState.email}")
+                is AuthUiState.LoggedIn ->
+                    LaunchedEffect(key1 = Unit) {
+                        navController.navigate(TelaInicialScreen)
+                    }
+
+
             }
         }
     }
@@ -62,6 +73,6 @@ fun AuthScreen(modifier: Modifier = Modifier, uiState: AuthUiState, onLogin: () 
 @Composable
 private fun AuthScreenPreview() {
     QuantoEuDevoTheme {
-        AuthScreen(uiState = AuthUiState.Ready) { }
+        AuthScreen(navController = rememberNavController(), uiState = AuthUiState.Ready) { }
     }
 }

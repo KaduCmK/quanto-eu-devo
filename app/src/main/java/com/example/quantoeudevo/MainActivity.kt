@@ -24,14 +24,14 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             QuantoEuDevoTheme {
-               NavHost(navController = navController, startDestination = AuthScreen) {
+               NavHost(navController = navController, startDestination = TelaInicialScreen) {
                    composable<AuthScreen> {
-                       AuthScreenRoot()
+                       AuthScreenRoot(navController = navController)
                    }
 
                     composable<TelaInicialScreen> {
                         TelaInicialScreenRoot(
-                            onNavigate = { navController.navigate(DetalhesFinanceiroScreen(it)) }
+                            navController = navController
                         )
                     }
 

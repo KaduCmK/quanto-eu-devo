@@ -19,10 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.quantoeudevo.core.model.Credito
-import com.example.quantoeudevo.core.model.Divida
-import com.example.quantoeudevo.core.model.Emprestimo
+import com.example.quantoeudevo.core.data.model.Emprestimo
+import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.time.LocalDateTime
 
 @Composable
 fun DetalhesFinanceiroList(modifier: Modifier = Modifier, lista: List<Emprestimo>) {
@@ -34,8 +34,9 @@ fun DetalhesFinanceiroList(modifier: Modifier = Modifier, lista: List<Emprestimo
         items(lista) {
             Card(
                 colors = CardDefaults.cardColors()
-                    .copy(containerColor =
-                        if (it is Credito) MaterialTheme.colorScheme.primaryContainer
+                    .copy(
+                        containerColor =
+                        if (it is Emprestimo.Credito) MaterialTheme.colorScheme.primaryContainer
                         else MaterialTheme.colorScheme.errorContainer
                     )
             ) {
@@ -46,14 +47,14 @@ fun DetalhesFinanceiroList(modifier: Modifier = Modifier, lista: List<Emprestimo
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     when (it) {
-                        is Credito -> {
+                        is Emprestimo.Credito -> {
                             Text(
                                 text = "Crédito: ${it.descricao}",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
 
-                        is Divida -> {
+                        is Emprestimo.Debito -> {
                             Text(
                                 text = "Dívida: ${it.descricao}",
                                 style = MaterialTheme.typography.bodyLarge
@@ -64,7 +65,9 @@ fun DetalhesFinanceiroList(modifier: Modifier = Modifier, lista: List<Emprestimo
                         text = "R$ ${it.valor}",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (it is Credito) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        color = if (it is Emprestimo.Credito)
+                            MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -79,8 +82,20 @@ private fun DetalhesFinanceiroListPreview() {
         Surface {
             DetalhesFinanceiroList(
                 lista = listOf(
-                    Credito("1", 100.0, "Crédito 1"),
-                    Divida("2", 50.0, "Dívida 1")
+                    Emprestimo.Credito(
+                        Usuario("0", "", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "", "L", "")
+
+                    ),
+                    Emprestimo.Debito(
+                        Usuario("0", "", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "", "L", "")
+
+                    )
                 )
             )
         }

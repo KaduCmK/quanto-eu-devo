@@ -25,17 +25,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.quantoeudevo.core.model.Credito
-import com.example.quantoeudevo.core.model.Divida
-import com.example.quantoeudevo.core.model.Financeiro
+import com.example.quantoeudevo.core.data.model.Emprestimo
+import com.example.quantoeudevo.core.data.model.Financeiro
+import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.time.LocalDateTime
 
 @Composable
 fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClick: () -> Unit) {
     val total = financeiro.saldo.sumOf {
         when (it) {
-            is Credito -> it.valor
-            is Divida -> -it.valor
+            is Emprestimo.Credito -> it.valor
+            is Emprestimo.Debito -> -it.valor
         }
     }
 
@@ -44,7 +45,9 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClic
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             onClick = onClick,
             colors = ButtonDefaults.buttonColors()
                 .copy(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -77,11 +80,13 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClic
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(financeiro.nome, style = MaterialTheme.typography.titleSmall)
+                Text(financeiro.criador.displayName ?: "", style = MaterialTheme.typography.titleSmall)
             }
         }
         Button(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             onClick = onClick,
             colors = ButtonDefaults.buttonColors()
                 .copy(containerColor = MaterialTheme.colorScheme.errorContainer)
@@ -102,9 +107,33 @@ private fun FinanceiroCardPreview() {
         FinanceiroCard(
             onClick = {},
             financeiro = Financeiro(
-                nome = "Lucas", saldo = listOf(
-                    Credito("1", 10.0, "ABC")
-                )
+                "00",
+                Usuario("0", "", "K", ""),
+                Usuario("1", "", "L", ""),
+                listOf(
+                    Emprestimo.Credito(
+                        Usuario("0", "","K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "","L", "")
+
+                    ),
+                    Emprestimo.Debito(
+                        Usuario("0","", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "","L", "")
+
+                    ),
+                    Emprestimo.Credito(
+                        Usuario("0","", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "","L", "")
+
+                    ),
+                ),
+                0
             )
         )
     }

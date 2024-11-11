@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.quantoeudevo.auth.data.di.AuthService
+import com.example.quantoeudevo.auth.data.model.AuthUiEvent
 import com.example.quantoeudevo.auth.data.model.AuthUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,27 +23,43 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Ready)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    fun handleGoogleSignIn() {
-        viewModelScope.launch {
-            _uiState.emit(AuthUiState.Loading)
+    fun onEvent(uiEvent: AuthUiEvent) {
+        when (uiEvent) {
+            is AuthUiEvent.OnGoogleSignIn -> {
+                viewModelScope.launch {
+                    _uiState.emit(AuthUiState.Loading)
 
-            val currentUser = authService.getSignedInUser()
-            if (currentUser != null) {
-                Toast.makeText(context, "Signed in as ${currentUser.displayName}", Toast.LENGTH_SHORT).show()
-                _uiState.emit(AuthUiState.Success(authService.getSignedInUser()?.displayName ?: ""))
-                return@launch
-            }
-
-            authService.googleSignIn().collect { result ->
-                // Handle the result
-                result.fold(
-                    onSuccess = { authResult ->
-                        _uiState.emit(AuthUiState.Success(authResult.user?.uid ?: ""))
-                    },
-                    onFailure = { exception ->
-                        _uiState.emit(AuthUiState.Error(exception.message ?: "An error occurred"))
+                    val currentUser = authService.getSignedInUser()
+                    if (currentUser != null) {
+                        Toast.makeText(
+                            context,
+                            "Signed in as ${currentUser.displayName}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        _uiState.emit(
+                            AuthUiState.LoggedIn(
+                                authService.getSignedInUser()?.displayName ?: ""
+                            )
+                        )
+                        return@launch
                     }
-                )
+
+                    authService.googleSignIn().collect { result ->
+                        // Handle the result
+                        result.fold(
+                            onSuccess = { authResult ->
+                                _uiState.emit(AuthUiState.LoggedIn(authResult.user?.uid ?: ""))
+                            },
+                            onFailure = { exception ->
+                                _uiState.emit(
+                                    AuthUiState.Error(
+                                        exception.message ?: "An error occurred"
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
             }
         }
     }

@@ -5,6 +5,8 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.example.quantoeudevo.core.data.di.UsuariosService
+import com.example.quantoeudevo.core.data.model.Usuario
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.AuthResult
@@ -16,8 +18,12 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.security.MessageDigest
 import java.util.UUID
+import javax.inject.Inject
 
-class AuthService(private val context: Context) {
+class AuthService @Inject constructor(
+    private val context: Context,
+    private val usuariosService: UsuariosService
+) {
 
     suspend fun googleSignIn(): Flow<Result<AuthResult>> {
         val firebaseAuth = FirebaseAuth.getInstance()
@@ -51,19 +57,22 @@ class AuthService(private val context: Context) {
                     val authCredential =
                         GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
                     val authResult = firebaseAuth.signInWithCredential(authCredential).await()
+
+
+                    usuariosService.setUsuario(Usuario(authResult.user!!))
+
                     trySend(Result.success(authResult))
-                }
-                else throw RuntimeException("Received an invalid credential type")
-            }
-            catch (e: GetCredentialCancellationException) {
+                } else throw RuntimeException("Received an invalid credential type")
+            } catch (e: GetCredentialCancellationException) {
                 trySend(Result.failure(Exception("Sign-in was cancelled.")))
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 trySend(Result.failure(e))
             }
-            awaitClose {  }
+            awaitClose { }
         }
     }
+
+    fun signOut() = FirebaseAuth.getInstance().signOut()
 
     fun getSignedInUser() = FirebaseAuth.getInstance().currentUser
 }

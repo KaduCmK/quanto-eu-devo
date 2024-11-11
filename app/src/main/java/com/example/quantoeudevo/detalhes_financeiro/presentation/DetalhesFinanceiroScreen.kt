@@ -25,24 +25,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.quantoeudevo.core.model.Credito
-import com.example.quantoeudevo.core.model.Divida
-import com.example.quantoeudevo.core.model.Financeiro
+import com.example.quantoeudevo.core.data.model.Emprestimo
+import com.example.quantoeudevo.core.data.model.Financeiro
+import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.detalhes_financeiro.presentation.components.DetalhesFinanceiroList
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.time.LocalDateTime
 
 @Composable
 fun DetalhesFinanceiroScreenRoot(modifier: Modifier = Modifier, id: String) {
     val viewModel: DetalhesFinanceiroViewModel = hiltViewModel()
-    DetalhesFinanceiroScreen(modifier = modifier, financeiro = Financeiro("Lucas", emptyList()))
+    DetalhesFinanceiroScreen(
+        modifier = modifier,
+        financeiro = Financeiro(
+            "00",
+            Usuario("0", "", "K", ""),
+            Usuario("1", "", "L", ""),
+            emptyList(),
+            LocalDateTime.now().toEpochSecond(null)
+        )
+    )
 }
 
 @Composable
 fun DetalhesFinanceiroScreen(modifier: Modifier = Modifier, financeiro: Financeiro) {
     val total = financeiro.saldo.sumOf {
         when (it) {
-            is Credito -> it.valor
-            is Divida -> -it.valor
+            is Emprestimo.Credito -> it.valor
+            is Emprestimo.Debito -> -it.valor
         }
     }
 
@@ -60,13 +70,13 @@ fun DetalhesFinanceiroScreen(modifier: Modifier = Modifier, financeiro: Financei
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 Text(
-                    "Seu saldo com ${financeiro.nome}",
+                    "Seu saldo com ${financeiro.criador.displayName}",
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (total > 0) "${financeiro.nome} te deve R$ $total"
-                    else if (total < 0) "Você deve R$ ${-total} a ${financeiro.nome}"
+                    text = if (total > 0) "${financeiro.criador.displayName} te deve R$ $total"
+                    else if (total < 0) "Você deve R$ ${-total} a ${financeiro.criador.displayName}"
                     else "Vocês estão quites!",
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -103,11 +113,33 @@ private fun DetalhesFinanceiroScreenPreview() {
     QuantoEuDevoTheme {
         DetalhesFinanceiroScreen(
             financeiro = Financeiro(
-                "Lucas", listOf(
-                    Credito("", 1000.0, "Salário"),
-                    Divida("", 500.0, "Aluguel"),
-                    Credito("", 200.0, "Freela"),
-                )
+                "00",
+                Usuario("0","", "K", ""),
+                Usuario("1","", "L", ""),
+                listOf(
+                    Emprestimo.Credito(
+                        Usuario("0", "", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "", "L", "")
+
+                    ),
+                    Emprestimo.Debito(
+                        Usuario("0", "", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "", "L", "")
+
+                    ),
+                    Emprestimo.Credito(
+                        Usuario("0", "", "K", ""),
+                        1000.0, "Salário",
+                        LocalDateTime.now().toEpochSecond(null),
+                        Usuario("1", "", "L", "")
+
+                    ),
+                ),
+                LocalDateTime.now().toEpochSecond(null)
             )
         )
     }
