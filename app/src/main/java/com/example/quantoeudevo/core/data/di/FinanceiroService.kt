@@ -11,12 +11,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FinanceiroService @Inject constructor(
-    private val authService: AuthService
-) {
+class FinanceiroService @Inject constructor() {
     private val db = FirebaseFirestore.getInstance()
 
-    suspend fun getFinanceiros(): List<Financeiro> {
+    suspend fun getFinanceiros(authService: AuthService): List<Financeiro> {
         return try {
             val criadorQuery = db.collection("financeiros")
                 .whereEqualTo("criador.uid", authService.getSignedInUser()?.uid)

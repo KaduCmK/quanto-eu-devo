@@ -6,6 +6,11 @@ import com.example.quantoeudevo.core.data.model.Usuario
 sealed class TelaInicialUiState {
     data object Unauthorized : TelaInicialUiState()
     data object Loading : TelaInicialUiState()
-    data class Loaded(val usuario: Usuario?, val financeiros: List<Financeiro>) : TelaInicialUiState()
+    data class Loaded(
+        val usuario: Usuario?,
+        val usuarios: List<Usuario>,
+        val financeiros: List<Financeiro>
+    ) : TelaInicialUiState()
+
     data class Error(val error: String) : TelaInicialUiState()
 }

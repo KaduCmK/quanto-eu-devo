@@ -1,10 +1,13 @@
 package com.example.quantoeudevo.auth.data.di
 
+import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.example.quantoeudevo.MainActivity
 import com.example.quantoeudevo.core.data.di.UsuariosService
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -12,6 +15,8 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import dagger.hilt.android.qualifiers.ActivityContext
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -20,17 +25,17 @@ import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
 
-class AuthService @Inject constructor(
-    private val context: Context,
-    private val usuariosService: UsuariosService
+class AuthService (
+    private val usuariosService: UsuariosService,
+    private val context: Context
 ) {
+    private val credentialManager = CredentialManager.create(context)
 
     suspend fun googleSignIn(): Flow<Result<AuthResult>> {
         val firebaseAuth = FirebaseAuth.getInstance()
 
         return callbackFlow {
             try {
-                val credentialManager: CredentialManager = CredentialManager.create(context)
 
                 val ranNonce = UUID.randomUUID().toString()
                 val bytes = ranNonce.toByteArray()
@@ -58,7 +63,6 @@ class AuthService @Inject constructor(
                         GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
                     val authResult = firebaseAuth.signInWithCredential(authCredential).await()
 
-
                     usuariosService.setUsuario(Usuario(authResult.user!!))
 
                     trySend(Result.success(authResult))
@@ -66,6 +70,7 @@ class AuthService @Inject constructor(
             } catch (e: GetCredentialCancellationException) {
                 trySend(Result.failure(Exception("Sign-in was cancelled.")))
             } catch (e: Exception) {
+                Log.e("AuthService", "Error signing in", e)
                 trySend(Result.failure(e))
             }
             awaitClose { }

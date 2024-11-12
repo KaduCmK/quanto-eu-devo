@@ -4,6 +4,7 @@ import com.example.quantoeudevo.auth.data.di.AuthService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -12,12 +13,10 @@ import javax.inject.Singleton
 object FirestoreModule {
 
     @Provides
-    @Singleton
-    fun provideFirestoreService(authService: AuthService): FinanceiroService =
-        FinanceiroService(authService)
+    fun provideFirestoreService(): FinanceiroService =
+        FinanceiroService()
 
     @Provides
-    @Singleton
     fun provideUsuariosService(): UsuariosService =
         UsuariosService()
 }

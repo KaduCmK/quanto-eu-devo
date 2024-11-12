@@ -1,12 +1,16 @@
 package com.example.quantoeudevo.tela_inicial.presentation
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,12 +27,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.quantoeudevo.AuthScreen
+import com.example.quantoeudevo.auth.data.di.AuthService
+import com.example.quantoeudevo.core.data.di.UsuariosService
 import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
@@ -36,13 +43,15 @@ import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
 import com.example.quantoeudevo.tela_inicial.presentation.components.FinanceiroCard
 import com.example.quantoeudevo.tela_inicial.presentation.components.TelaInicialTopBar
+import com.example.quantoeudevo.tela_inicial.presentation.components.dialog.AddFinanceiroDialog
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
 
 @Composable
-fun TelaInicialScreenRoot(modifier: Modifier = Modifier, navController: NavController) {
+fun TelaInicialScreenRoot(modifier: Modifier = Modifier, authService: AuthService, navController: NavController) {
     val viewModel = hiltViewModel<TelaInicialViewModel>()
     TelaInicialScreen(
         modifier = modifier,
+        authService = authService,
         navController = navController,
         uiState = viewModel.uiState.collectAsState().value,
         onEvent = viewModel::onEvent
@@ -53,6 +62,7 @@ fun TelaInicialScreenRoot(modifier: Modifier = Modifier, navController: NavContr
 @Composable
 fun TelaInicialScreen(
     modifier: Modifier = Modifier,
+    authService: AuthService,
     navController: NavController,
     uiState: TelaInicialUiState,
     onEvent: (TelaInicialUiEvent) -> Unit,
@@ -60,7 +70,19 @@ fun TelaInicialScreen(
     var dialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
-        onEvent(TelaInicialUiEvent.OnCheckLoggedIn)
+        onEvent(TelaInicialUiEvent.OnCheckLoggedIn(authService))
+    }
+
+    if (dialog) {
+        AddFinanceiroDialog(
+            modifier = Modifier,
+            usuarios = if (uiState is TelaInicialUiState.Loaded) uiState.usuarios else emptyList(),
+            onDismiss = { dialog = false },
+            onConfirm = {
+                onEvent(TelaInicialUiEvent.OnAddFinanceiro(authService))
+                dialog = false
+            },
+            searchUsers = { onEvent(TelaInicialUiEvent.onSearchUsers(it)) })
     }
 
     Scaffold(
@@ -70,11 +92,11 @@ fun TelaInicialScreen(
                 photoUrl =
                 if (uiState is TelaInicialUiState.Loaded) uiState.usuario?.photoUrl else null,
                 onLogout = {
-                    onEvent(TelaInicialUiEvent.OnLogout)
+                    onEvent(TelaInicialUiEvent.OnLogout(authService))
                 })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onEvent(TelaInicialUiEvent.OnAddFinanceiro) }) {
+            FloatingActionButton(onClick = { dialog = true }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
         }
@@ -96,7 +118,8 @@ fun TelaInicialScreen(
                 FlowRow(
                     modifier = Modifier
                         .padding(innerPadding)
-                        .fillMaxSize(),
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     uiState.financeiros.forEach {
@@ -137,6 +160,7 @@ fun TelaInicialScreenPreview() {
         TelaInicialScreen(
             uiState = TelaInicialUiState.Loaded(
                 null,
+                emptyList(),
                 listOf(
                     Financeiro(
                         "00",
@@ -169,6 +193,7 @@ fun TelaInicialScreenPreview() {
                     )
                 )
             ),
+            authService = AuthService(UsuariosService(), LocalContext.current),
             onEvent = {},
             navController = rememberNavController()
         )

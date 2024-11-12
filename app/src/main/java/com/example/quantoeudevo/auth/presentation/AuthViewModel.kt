@@ -17,8 +17,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authService: AuthService,
-    @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Ready)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -29,22 +27,22 @@ class AuthViewModel @Inject constructor(
                 viewModelScope.launch {
                     _uiState.emit(AuthUiState.Loading)
 
-                    val currentUser = authService.getSignedInUser()
+                    val currentUser = uiEvent.authService.getSignedInUser()
                     if (currentUser != null) {
-                        Toast.makeText(
-                            context,
-                            "Signed in as ${currentUser.displayName}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+//                        Toast.makeText(
+//                            context,
+//                            "Signed in as ${currentUser.displayName}",
+//                            Toast.LENGTH_SHORT
+//                        ).show()
                         _uiState.emit(
                             AuthUiState.LoggedIn(
-                                authService.getSignedInUser()?.displayName ?: ""
+                                uiEvent.authService.getSignedInUser()?.displayName ?: ""
                             )
                         )
                         return@launch
                     }
 
-                    authService.googleSignIn().collect { result ->
+                    uiEvent.authService.googleSignIn().collect { result ->
                         // Handle the result
                         result.fold(
                             onSuccess = { authResult ->
