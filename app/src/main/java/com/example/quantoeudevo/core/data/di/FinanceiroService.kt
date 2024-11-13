@@ -8,6 +8,7 @@ import com.example.quantoeudevo.core.data.dto.EmprestimoFirestore
 import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -53,69 +54,84 @@ class FinanceiroService @Inject constructor() {
                         else null
                     }
 
-                        Log.d("FirestoreService", "dto: $dto")
-                        Financeiro(
-                            id = doc.id,
-                            criador = dto!!.criador!!,
-                            outroUsuario = dto.outroUsuario!!,
-                            saldo = listEmprestimos,
-                            dataCriacao = dto.dataCriacao!!
-                        )
+                Log.d("FirestoreService", "dto: $dto")
+                Financeiro(
+                    id = doc.id,
+                    criador = dto!!.criador!!,
+                    outroUsuario = dto.outroUsuario!!,
+                    saldo = listEmprestimos,
+                    dataCriacao = dto.dataCriacao!!
+                )
+            }
+            val outroUsuarioList = outroUsuarioQuery.documents.mapNotNull { doc ->
+                val dto = doc.toObject(FinanceiroFirestore::class.java)
+
+                val listEmprestimos = doc.reference.collection("emprestimos").get()
+                    .await().documents.mapNotNull { emp ->
+                        val empDto = emp.toObject(EmprestimoFirestore::class.java)
+                        if (empDto?.cedente?.uid == authService.getSignedInUser()?.uid)
+                            Emprestimo.Credito(
+                                id = emp.id,
+                                cedente = empDto?.recebedor!!,
+                                outroUsuario = empDto.cedente!!,
+                                valor = empDto.valor!!.toBigDecimal(),
+                                timestamp = empDto.dataHora!!,
+                                descricao = empDto.descricao!!
+                            )
+                        else if (empDto?.recebedor?.uid == authService.getSignedInUser()?.uid)
+                            Emprestimo.Debito(
+                                id = emp.id,
+                                outroUsuario = empDto?.cedente!!,
+                                recebedor = empDto.recebedor!!,
+                                valor = empDto.valor!!.toBigDecimal(),
+                                timestamp = empDto.dataHora!!,
+                                descricao = empDto.descricao!!
+                            )
+                        else null
                     }
-                val outroUsuarioList = outroUsuarioQuery.documents.mapNotNull { doc ->
-                    val dto = doc.toObject(FinanceiroFirestore::class.java)
 
-                    val listEmprestimos = doc.reference.collection("emprestimos").get()
-                        .await().documents.mapNotNull { emp ->
-                            val empDto = emp.toObject(EmprestimoFirestore::class.java)
-                            if (empDto?.cedente?.uid == authService.getSignedInUser()?.uid)
-                                Emprestimo.Credito(
-                                    id = emp.id,
-                                    cedente = empDto?.recebedor!!,
-                                    outroUsuario = empDto.cedente!!,
-                                    valor = empDto.valor!!.toBigDecimal(),
-                                    timestamp = empDto.dataHora!!,
-                                    descricao = empDto.descricao!!
-                                )
-                            else if (empDto?.recebedor?.uid == authService.getSignedInUser()?.uid)
-                                Emprestimo.Debito(
-                                    id = emp.id,
-                                    outroUsuario = empDto?.cedente!!,
-                                    recebedor = empDto.recebedor!!,
-                                    valor = empDto.valor!!.toBigDecimal(),
-                                    timestamp = empDto.dataHora!!,
-                                    descricao = empDto.descricao!!
-                                )
-                            else null
-                        }
-
-                    Financeiro(
-                        id = doc.id,
-                        criador = dto!!.criador as Usuario,
-                        outroUsuario = dto.outroUsuario!!,
-                        saldo = listEmprestimos,
-                        dataCriacao = dto.dataCriacao!!
-                    )
-                }
-
-                criadorList + outroUsuarioList
+                Financeiro(
+                    id = doc.id,
+                    criador = dto!!.criador as Usuario,
+                    outroUsuario = dto.outroUsuario!!,
+                    saldo = listEmprestimos,
+                    dataCriacao = dto.dataCriacao!!
+                )
             }
-            catch(e: Exception) {
-                Log.e("FirestoreService", "Error getting financeiros", e)
-                emptyList()
-            }
+
+            criadorList + outroUsuarioList
+        } catch (e: Exception) {
+            Log.e("FirestoreService", "Error getting financeiros", e)
+            emptyList()
         }
+    }
 
-        suspend fun deleteFinanceiro(id: String): Result<Unit> {
-            return try {
-                val financeiroRef = db.collection("financeiros").document(id)
+    suspend fun getFinanceiroPorId(id: String): Financeiro {
+        val financeiroRef = db.collection("financeiros")
+            .document(id)
+            .get()
+            .await()
+        val dto = financeiroRef.toObject(FinanceiroFirestore::class.java)
 
-                financeiroRef.delete().await()
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+        return Financeiro(
+            id = financeiroRef.id,
+            criador = dto!!.criador!!,
+            outroUsuario = dto.outroUsuario!!,
+            saldo = emptyList(),
+            dataCriacao = dto.dataCriacao!!
+        )
+    }
+
+    suspend fun deleteFinanceiro(id: String): Result<Unit> {
+        return try {
+            val financeiroRef = db.collection("financeiros").document(id)
+
+            financeiroRef.delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+    }
 
 //        suspend fun getEmprestimosFromFinanceiro(financeiroId: String): List<Emprestimo> {
 //            val emprestimos = mutableListOf<Emprestimo>()
@@ -156,33 +172,33 @@ class FinanceiroService @Inject constructor() {
 //            return emprestimos
 //        }
 
-        suspend fun addFinanceiro(financeiro: FinanceiroFirestore): Result<Unit> {
-            return try {
-                val financeiroRef = db.collection("financeiros").document()
+    suspend fun addFinanceiro(financeiro: FinanceiroFirestore): Result<Unit> {
+        return try {
+            val financeiroRef = db.collection("financeiros").document()
 
-                financeiroRef.set(financeiro).await()
+            financeiroRef.set(financeiro).await()
 
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-
-        suspend fun addEmprestimoToFinanceiro(
-            financeiroId: String,
-            emprestimo: EmprestimoFirestore
-        ): Result<Unit> {
-
-            return try {
-                val emprestimosRef = db.collection("financeiros")
-                    .document(financeiroId)
-                    .collection("emprestimos")
-                    .document()
-                emprestimosRef.set(emprestimo).await()
-
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
+
+    suspend fun addEmprestimoToFinanceiro(
+        financeiroId: String,
+        emprestimo: EmprestimoFirestore
+    ): Result<Unit> {
+
+        return try {
+            val emprestimosRef = db.collection("financeiros")
+                .document(financeiroId)
+                .collection("emprestimos")
+                .document()
+            emprestimosRef.set(emprestimo).await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

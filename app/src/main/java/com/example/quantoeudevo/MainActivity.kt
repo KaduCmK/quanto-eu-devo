@@ -39,7 +39,8 @@ class MainActivity : ComponentActivity() {
                     composable<TelaInicialScreen> {
                         TelaInicialScreenRoot(
                             authService = authService,
-                            navController = navController
+                            navController = navController,
+                            onNavigate = { navController.navigate(DetalhesFinanceiroScreen(it)) }
                         )
                     }
 

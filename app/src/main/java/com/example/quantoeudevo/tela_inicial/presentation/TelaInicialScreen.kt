@@ -58,7 +58,8 @@ import java.math.BigDecimal
 fun TelaInicialScreenRoot(
     modifier: Modifier = Modifier,
     authService: AuthService,
-    navController: NavController
+    navController: NavController,
+    onNavigate: (String) -> Unit
 ) {
     val viewModel = hiltViewModel<TelaInicialViewModel>()
     TelaInicialScreen(
@@ -66,6 +67,7 @@ fun TelaInicialScreenRoot(
         authService = authService,
         navController = navController,
         uiState = viewModel.uiState.collectAsState().value,
+        onNavigate = onNavigate,
         onEvent = viewModel::onEvent
     )
 }
@@ -77,6 +79,7 @@ fun TelaInicialScreen(
     authService: AuthService,
     navController: NavController,
     uiState: TelaInicialUiState,
+    onNavigate: (String) -> Unit,
     onEvent: (TelaInicialUiEvent) -> Unit,
 ) {
     var financeiroDialog by remember { mutableStateOf(false) }
@@ -157,7 +160,7 @@ fun TelaInicialScreen(
                     uiState.financeiros.forEach {
                         FinanceiroCard(
                             modifier = Modifier.combinedClickable(
-                                onClick = { navController.navigate(DetalhesFinanceiroScreen(it.id)) },
+                                onClick = { onNavigate(it.id)},
                                 onLongClick = {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     onEvent(TelaInicialUiEvent.OnLongClick(it))
@@ -198,6 +201,7 @@ fun TelaInicialScreen(
 fun TelaInicialScreenPreview() {
     QuantoEuDevoTheme {
         TelaInicialScreen(
+            onNavigate = {},
             uiState = TelaInicialUiState.Loaded(
                 null,
                 emptyList(),

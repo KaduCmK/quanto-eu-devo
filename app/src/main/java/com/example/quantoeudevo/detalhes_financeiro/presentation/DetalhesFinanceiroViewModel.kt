@@ -24,16 +24,18 @@ class DetalhesFinanceiroViewModel @Inject constructor(
     val uiState: StateFlow<DetalhesFinanceiroUiState> = _uiState.asStateFlow()
 
     fun onEvent(uiEvent: DetalhesFinanceiroUiEvent) {
-//        when (uiEvent) {
-//            is DetalhesFinanceiroUiEvent.OnGetFinanceiro -> {
-//                viewModelScope.launch {
+        when (uiEvent) {
+            is DetalhesFinanceiroUiEvent.OnGetFinanceiro -> {
+                viewModelScope.launch {
 //                    _uiState.emit(DetalhesFinanceiroUiState.Loading)
-//
-//                    _uiState.emit(DetalhesFinanceiroUiState.Loaded(
-//                        financeiro = emptyList()
-//                    )
-//                }
-//            }
-//        }
+
+                    _uiState.emit(
+                        DetalhesFinanceiroUiState.Loaded(
+                            financeiro = financeiroService.getFinanceiroPorId(uiEvent.id)
+                        )
+                    )
+                }
+            }
+        }
     }
 }
