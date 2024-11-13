@@ -13,6 +13,8 @@ import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,9 +44,9 @@ class TelaInicialViewModel @Inject constructor(
                     } else {
                         _uiState.emit(
                             TelaInicialUiState.Loaded(
-                                Usuario(uiEvent.authService.getSignedInUser()!!),
-                                emptyList(),
-                                financeiroService.getFinanceiros(uiEvent.authService)
+                                usuario = Usuario(uiEvent.authService.getSignedInUser()!!),
+                                usuarios = emptyList(),
+                                financeiros = financeiroService.getFinanceiros(uiEvent.authService)
                             )
                         )
                     }

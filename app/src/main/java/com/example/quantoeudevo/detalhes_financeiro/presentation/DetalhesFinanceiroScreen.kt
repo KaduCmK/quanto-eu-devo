@@ -43,7 +43,7 @@ fun DetalhesFinanceiroScreenRoot(modifier: Modifier = Modifier, id: String) {
             Usuario("0", "", "K", ""),
             Usuario("1", "", "L", ""),
             emptyList(),
-            LocalDateTime.now().toEpochSecond(null)
+            0
         )
     )
 }
@@ -56,6 +56,7 @@ fun DetalhesFinanceiroScreen(modifier: Modifier = Modifier, financeiro: Financei
             is Emprestimo.Debito -> -it.valor
         }
     }
+    
 
     Surface(modifier = modifier.fillMaxSize()) {
         Column(

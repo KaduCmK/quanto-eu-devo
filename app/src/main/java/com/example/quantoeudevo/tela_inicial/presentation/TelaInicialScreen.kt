@@ -157,7 +157,7 @@ fun TelaInicialScreen(
                     uiState.financeiros.forEach {
                         FinanceiroCard(
                             modifier = Modifier.combinedClickable(
-                                onClick = { navController.navigate(DetalhesFinanceiroScreen) },
+                                onClick = { navController.navigate(DetalhesFinanceiroScreen(it.id)) },
                                 onLongClick = {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     onEvent(TelaInicialUiEvent.OnLongClick(it))
