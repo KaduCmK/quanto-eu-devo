@@ -1,7 +1,8 @@
 package com.example.quantoeudevo.tela_inicial.presentation
 
 import android.content.res.Configuration
-import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -27,7 +28,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -58,7 +61,7 @@ fun TelaInicialScreenRoot(modifier: Modifier = Modifier, authService: AuthServic
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TelaInicialScreen(
     modifier: Modifier = Modifier,
@@ -68,6 +71,7 @@ fun TelaInicialScreen(
     onEvent: (TelaInicialUiEvent) -> Unit,
 ) {
     var dialog by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
 
     LaunchedEffect(key1 = Unit) {
         onEvent(TelaInicialUiEvent.OnCheckLoggedIn(authService))
@@ -118,15 +122,21 @@ fun TelaInicialScreen(
                 FlowRow(
                     modifier = Modifier
                         .padding(innerPadding)
+                        .padding(bottom = 16.dp)
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     uiState.financeiros.forEach {
                         FinanceiroCard(
-                            modifier = Modifier.padding(8.dp),
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onEvent(TelaInicialUiEvent.OnClick) },
+                                onLongClick = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onEvent(TelaInicialUiEvent.OnLongClick(it))
+                                }
+                            ),
                             financeiro = it,
-                            onClick = { onEvent(TelaInicialUiEvent.OnClick) }
                         )
                     }
                 }

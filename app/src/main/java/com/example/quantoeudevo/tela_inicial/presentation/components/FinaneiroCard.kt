@@ -29,10 +29,9 @@ import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
-import java.time.LocalDateTime
 
 @Composable
-fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClick: () -> Unit) {
+fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro) {
     val total = financeiro.saldo.sumOf {
         when (it) {
             is Emprestimo.Credito -> it.valor
@@ -41,14 +40,14 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClic
     }
 
     Column(
-        modifier = modifier.width(128.dp),
+        modifier = Modifier.width(128.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            onClick = onClick,
+            onClick = {},
             colors = ButtonDefaults.buttonColors()
                 .copy(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
@@ -59,10 +58,9 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClic
             )
         }
         Card(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .height(128.dp),
-            onClick = onClick,
             colors = CardDefaults.elevatedCardColors()
                 .copy(
                     containerColor = if (total > 0)
@@ -87,7 +85,7 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClic
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            onClick = onClick,
+            onClick = {},
             colors = ButtonDefaults.buttonColors()
                 .copy(containerColor = MaterialTheme.colorScheme.errorContainer)
         ) {
@@ -105,7 +103,6 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro, onClic
 private fun FinanceiroCardPreview() {
     QuantoEuDevoTheme {
         FinanceiroCard(
-            onClick = {},
             financeiro = Financeiro(
                 "00",
                 Usuario("0", "", "K", ""),
@@ -114,21 +111,21 @@ private fun FinanceiroCardPreview() {
                     Emprestimo.Credito(
                         Usuario("0", "","K", ""),
                         1000.0, "Salário",
-                        LocalDateTime.now().toEpochSecond(null),
+                        0,
                         Usuario("1", "","L", "")
 
                     ),
                     Emprestimo.Debito(
                         Usuario("0","", "K", ""),
                         1000.0, "Salário",
-                        LocalDateTime.now().toEpochSecond(null),
+                        0,
                         Usuario("1", "","L", "")
 
                     ),
                     Emprestimo.Credito(
                         Usuario("0","", "K", ""),
                         1000.0, "Salário",
-                        LocalDateTime.now().toEpochSecond(null),
+                        0,
                         Usuario("1", "","L", "")
 
                     ),

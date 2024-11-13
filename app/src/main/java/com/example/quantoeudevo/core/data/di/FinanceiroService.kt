@@ -54,6 +54,18 @@ class FinanceiroService @Inject constructor() {
         }
     }
 
+    suspend fun deleteFinanceiro(id: String): Result<Unit> {
+        return try {
+            val financeiroRef = db.collection("financeiros").document(id)
+
+            financeiroRef.delete().await()
+            Result.success(Unit)
+        }
+        catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun getEmprestimosFromFinanceiro(financeiroId: String): List<Emprestimo> {
         val emprestimos = mutableListOf<Emprestimo>()
 

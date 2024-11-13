@@ -1,11 +1,8 @@
 package com.example.quantoeudevo.tela_inicial.presentation
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.quantoeudevo.auth.data.di.AuthService
 import com.example.quantoeudevo.core.data.di.FinanceiroService
 import com.example.quantoeudevo.core.data.di.UsuariosService
 import com.example.quantoeudevo.core.data.dto.FinanceiroDto
@@ -13,15 +10,12 @@ import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ActivityContext
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Named
 
 @HiltViewModel
 class TelaInicialViewModel @Inject constructor(
@@ -49,11 +43,6 @@ class TelaInicialViewModel @Inject constructor(
                             emptyList(),
                             financeiroService.getFinanceiros(uiEvent.authService)
                         ))
-//                        Toast.makeText(
-//                            context,
-//                            "Signed in as ${authService.getSignedInUser()?.displayName}",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
                     }
                 }
             }
@@ -94,14 +83,23 @@ class TelaInicialViewModel @Inject constructor(
             }
 
             is TelaInicialUiEvent.OnLongClick -> {
-
+                viewModelScope.launch {
+//                    _uiState.emit(TelaInicialUiState.Loading)
+                    financeiroService.deleteFinanceiro(uiEvent.financeiro.id)
+                    _uiState.update {
+                        (it as TelaInicialUiState.Loaded).copy(
+                            financeiros = (_uiState.value as TelaInicialUiState.Loaded)
+                                .financeiros
+                                .filter { f -> f.id != uiEvent.financeiro.id }
+                        )
+                    }
+                }
             }
 
             is TelaInicialUiEvent.OnLogout -> {
                 viewModelScope.launch {
                     uiEvent.authService.signOut()
                     _uiState.value = TelaInicialUiState.Unauthorized
-//                    Toast.makeText(context, "Signed out", Toast.LENGTH_SHORT).show()
                 }
             }
         }
