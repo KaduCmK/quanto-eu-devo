@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.quantoeudevo.core.data.di.FinanceiroService
 import com.example.quantoeudevo.core.data.di.UsuariosService
-import com.example.quantoeudevo.core.data.dto.FinanceiroDto
+import com.example.quantoeudevo.core.data.dto.EmprestimoFirestore
+import com.example.quantoeudevo.core.data.dto.FinanceiroFirestore
+import com.example.quantoeudevo.core.data.model.Emprestimo
+import com.example.quantoeudevo.core.data.model.TipoEmprestimo
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
@@ -36,13 +39,14 @@ class TelaInicialViewModel @Inject constructor(
                     if (uiEvent.authService.getSignedInUser() == null) {
                         _uiState.value = TelaInicialUiState.Unauthorized
 //                        Toast.makeText(context, "Unauthorized", Toast.LENGTH_SHORT).show()
-                    }
-                    else {
-                        _uiState.emit(TelaInicialUiState.Loaded(
-                            Usuario(uiEvent.authService.getSignedInUser()!!),
-                            emptyList(),
-                            financeiroService.getFinanceiros(uiEvent.authService)
-                        ))
+                    } else {
+                        _uiState.emit(
+                            TelaInicialUiState.Loaded(
+                                Usuario(uiEvent.authService.getSignedInUser()!!),
+                                emptyList(),
+                                financeiroService.getFinanceiros(uiEvent.authService)
+                            )
+                        )
                     }
                 }
             }
@@ -59,13 +63,45 @@ class TelaInicialViewModel @Inject constructor(
 
             is TelaInicialUiEvent.OnAddFinanceiro -> {
                 viewModelScope.launch {
-                    val financeiro = FinanceiroDto(
+                    val financeiro = FinanceiroFirestore(
                         criador = (_uiState.value as TelaInicialUiState.Loaded).usuario!!,
-                        pagador = (_uiState.value as TelaInicialUiState.Loaded).usuario!!,
-                        saldo = emptyList(),
+                        outroUsuario = uiEvent.outroUsuario,
                         dataCriacao = System.currentTimeMillis()
                     )
                     financeiroService.addFinanceiro(financeiro)
+                    _uiState.update {
+                        (it as TelaInicialUiState.Loaded).copy(
+                            financeiros = financeiroService.getFinanceiros(uiEvent.authService)
+                        )
+                    }
+                }
+            }
+
+            is TelaInicialUiEvent.OnAddEmprestimo -> {
+                viewModelScope.launch {
+                    val outroUsuario = if (uiEvent.financeiro.criador.uid == uiEvent.authService.getSignedInUser()?.uid)
+                        uiEvent.financeiro.outroUsuario
+                    else uiEvent.financeiro.criador
+                    val emprestimo =
+                        if (uiEvent.tipoEmprestimo is TipoEmprestimo.Credito)
+                            EmprestimoFirestore(
+                                cedente = (_uiState.value as TelaInicialUiState.Loaded).usuario!!,
+                                recebedor = outroUsuario,
+                                valor = uiEvent.valor.toString(),
+                                descricao = uiEvent.descricao,
+                                dataHora = System.currentTimeMillis(),
+                                tipoTransacao = "CREDITO"
+                            )
+                        else EmprestimoFirestore(
+                            cedente = outroUsuario,
+                            recebedor = (_uiState.value as TelaInicialUiState.Loaded).usuario!!,
+                            valor = uiEvent.valor.toString(),
+                            descricao = uiEvent.descricao,
+                            dataHora = System.currentTimeMillis(),
+                            tipoTransacao = "DEBITO"
+                        )
+
+                    financeiroService.addEmprestimoToFinanceiro(uiEvent.financeiro.id, emprestimo)
                     _uiState.update {
                         (it as TelaInicialUiState.Loaded).copy(
                             financeiros = financeiroService.getFinanceiros(uiEvent.authService)

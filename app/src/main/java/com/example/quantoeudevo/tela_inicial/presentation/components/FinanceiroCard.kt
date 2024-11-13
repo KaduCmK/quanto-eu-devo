@@ -29,9 +29,16 @@ import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.math.BigDecimal
 
 @Composable
-fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro) {
+fun FinanceiroCard(
+    modifier: Modifier = Modifier,
+    usuario: Usuario,
+    financeiro: Financeiro,
+    onAddCredito: () -> Unit,
+    onAddDebito: () -> Unit
+) {
     val total = financeiro.saldo.sumOf {
         when (it) {
             is Emprestimo.Credito -> it.valor
@@ -47,7 +54,7 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            onClick = {},
+            onClick = onAddCredito,
             colors = ButtonDefaults.buttonColors()
                 .copy(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
@@ -63,7 +70,7 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro) {
                 .height(128.dp),
             colors = CardDefaults.elevatedCardColors()
                 .copy(
-                    containerColor = if (total > 0)
+                    containerColor = if (total > BigDecimal.ZERO)
                         Color(0xff0c2b0e)
                     else Color(0xff661511)
                 )
@@ -78,14 +85,18 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro) {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(financeiro.criador.displayName ?: "", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = if (financeiro.criador.uid == usuario.uid) financeiro.outroUsuario.displayName ?: ""
+                    else financeiro.criador.displayName ?: "",
+                    style = MaterialTheme.typography.titleSmall
+                )
             }
         }
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp),
-            onClick = {},
+            onClick = onAddDebito,
             colors = ButtonDefaults.buttonColors()
                 .copy(containerColor = MaterialTheme.colorScheme.errorContainer)
         ) {
@@ -103,30 +114,36 @@ fun FinanceiroCard(modifier: Modifier = Modifier, financeiro: Financeiro) {
 private fun FinanceiroCardPreview() {
     QuantoEuDevoTheme {
         FinanceiroCard(
+            onAddCredito = {},
+            onAddDebito = {},
+            usuario = Usuario("0", "", "K", ""),
             financeiro = Financeiro(
                 "00",
                 Usuario("0", "", "K", ""),
                 Usuario("1", "", "L", ""),
                 listOf(
                     Emprestimo.Credito(
-                        Usuario("0", "","K", ""),
-                        1000.0, "Salário",
+                        "3",
+                        Usuario("0", "", "K", ""),
+                        BigDecimal(1000.0), "Salário",
                         0,
-                        Usuario("1", "","L", "")
+                        Usuario("1", "", "L", "")
 
                     ),
                     Emprestimo.Debito(
-                        Usuario("0","", "K", ""),
-                        1000.0, "Salário",
+                        "2",
+                        Usuario("0", "", "K", ""),
+                        BigDecimal(1000.0), "Salário",
                         0,
-                        Usuario("1", "","L", "")
+                        Usuario("1", "", "L", "")
 
                     ),
                     Emprestimo.Credito(
-                        Usuario("0","", "K", ""),
-                        1000.0, "Salário",
+                        "",
+                        Usuario("0", "", "K", ""),
+                        BigDecimal(1000.0), "Salário",
                         0,
-                        Usuario("1", "","L", "")
+                        Usuario("1", "", "L", "")
 
                     ),
                 ),

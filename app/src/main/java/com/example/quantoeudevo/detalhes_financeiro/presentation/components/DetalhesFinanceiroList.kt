@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Composable
@@ -83,15 +84,17 @@ private fun DetalhesFinanceiroListPreview() {
             DetalhesFinanceiroList(
                 lista = listOf(
                     Emprestimo.Credito(
+                        "2",
                         Usuario("0", "", "K", ""),
-                        1000.0, "Salário",
+                        BigDecimal(1000.0), "Salário",
                         LocalDateTime.now().toEpochSecond(null),
                         Usuario("1", "", "L", "")
 
                     ),
                     Emprestimo.Debito(
+                        "",
                         Usuario("0", "", "K", ""),
-                        1000.0, "Salário",
+                        BigDecimal(1000.0), "Salário",
                         LocalDateTime.now().toEpochSecond(null),
                         Usuario("1", "", "L", "")
 

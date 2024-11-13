@@ -2,6 +2,7 @@ package com.example.quantoeudevo.core.data.model
 
 import com.google.firebase.auth.FirebaseUser
 
+
 data class Usuario(
     val uid: String? = null,
     val photoUrl: String? = null,

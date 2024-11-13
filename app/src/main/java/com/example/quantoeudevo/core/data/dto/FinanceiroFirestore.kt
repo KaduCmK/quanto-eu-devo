@@ -1,11 +1,9 @@
 package com.example.quantoeudevo.core.data.dto
 
-import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Usuario
 
-data class FinanceiroDto(
+data class FinanceiroFirestore(
     val criador: Usuario? = null,
-    val pagador: Usuario? = null,
-    val saldo: List<Emprestimo>? = null,
+    val outroUsuario: Usuario? = null,
     val dataCriacao: Long? = null
 )

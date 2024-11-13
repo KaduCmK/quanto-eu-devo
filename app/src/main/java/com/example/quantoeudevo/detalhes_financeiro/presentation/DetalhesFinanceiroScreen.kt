@@ -30,6 +30,7 @@ import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.detalhes_financeiro.presentation.components.DetalhesFinanceiroList
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Composable
@@ -75,8 +76,8 @@ fun DetalhesFinanceiroScreen(modifier: Modifier = Modifier, financeiro: Financei
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (total > 0) "${financeiro.criador.displayName} te deve R$ $total"
-                    else if (total < 0) "Você deve R$ ${-total} a ${financeiro.criador.displayName}"
+                    text = if (total > BigDecimal.ZERO) "${financeiro.criador.displayName} te deve R$ $total"
+                    else if (total < BigDecimal.ZERO) "Você deve R$ ${-total} a ${financeiro.criador.displayName}"
                     else "Vocês estão quites!",
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -118,22 +119,25 @@ private fun DetalhesFinanceiroScreenPreview() {
                 Usuario("1","", "L", ""),
                 listOf(
                     Emprestimo.Credito(
+                        "",
                         Usuario("0", "", "K", ""),
-                        1000.0, "Salário",
+                        BigDecimal(1000.0), "Salário",
                         LocalDateTime.now().toEpochSecond(null),
                         Usuario("1", "", "L", "")
 
                     ),
                     Emprestimo.Debito(
+                        "0",
                         Usuario("0", "", "K", ""),
-                        1000.0, "Salário",
+                        BigDecimal(1000.0), "Salário",
                         LocalDateTime.now().toEpochSecond(null),
                         Usuario("1", "", "L", "")
 
                     ),
                     Emprestimo.Credito(
+                        "2",
                         Usuario("0", "", "K", ""),
-                        1000.0, "Salário",
+                        BigDecimal(1000.0), "Salário",
                         LocalDateTime.now().toEpochSecond(null),
                         Usuario("1", "", "L", "")
 

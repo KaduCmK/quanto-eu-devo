@@ -1,6 +1,7 @@
 package com.example.quantoeudevo.tela_inicial.presentation
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,20 +38,28 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.quantoeudevo.AuthScreen
+import com.example.quantoeudevo.DetalhesFinanceiroScreen
 import com.example.quantoeudevo.auth.data.di.AuthService
 import com.example.quantoeudevo.core.data.di.UsuariosService
 import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Financeiro
+import com.example.quantoeudevo.core.data.model.TipoEmprestimo
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
 import com.example.quantoeudevo.tela_inicial.presentation.components.FinanceiroCard
 import com.example.quantoeudevo.tela_inicial.presentation.components.TelaInicialTopBar
+import com.example.quantoeudevo.tela_inicial.presentation.components.dialog.AddEmprestimoDialog
 import com.example.quantoeudevo.tela_inicial.presentation.components.dialog.AddFinanceiroDialog
 import com.example.quantoeudevo.ui.theme.QuantoEuDevoTheme
+import java.math.BigDecimal
 
 @Composable
-fun TelaInicialScreenRoot(modifier: Modifier = Modifier, authService: AuthService, navController: NavController) {
+fun TelaInicialScreenRoot(
+    modifier: Modifier = Modifier,
+    authService: AuthService,
+    navController: NavController
+) {
     val viewModel = hiltViewModel<TelaInicialViewModel>()
     TelaInicialScreen(
         modifier = modifier,
@@ -70,23 +79,41 @@ fun TelaInicialScreen(
     uiState: TelaInicialUiState,
     onEvent: (TelaInicialUiEvent) -> Unit,
 ) {
-    var dialog by remember { mutableStateOf(false) }
+    var financeiroDialog by remember { mutableStateOf(false) }
+    var emprestimoDialog by remember { mutableStateOf<Pair<Financeiro, TipoEmprestimo>?>(null) }
     val haptics = LocalHapticFeedback.current
 
     LaunchedEffect(key1 = Unit) {
         onEvent(TelaInicialUiEvent.OnCheckLoggedIn(authService))
     }
 
-    if (dialog) {
+    if (financeiroDialog) {
         AddFinanceiroDialog(
-            modifier = Modifier,
             usuarios = if (uiState is TelaInicialUiState.Loaded) uiState.usuarios else emptyList(),
-            onDismiss = { dialog = false },
+            onDismiss = { financeiroDialog = false },
             onConfirm = {
-                onEvent(TelaInicialUiEvent.OnAddFinanceiro(authService))
-                dialog = false
+                onEvent(TelaInicialUiEvent.OnAddFinanceiro(authService, it))
+                financeiroDialog = false
             },
             searchUsers = { onEvent(TelaInicialUiEvent.onSearchUsers(it)) })
+    }
+    emprestimoDialog?.let {
+        AddEmprestimoDialog(
+            tipoEmprestimo = it.second,
+            onDismiss = { emprestimoDialog = null },
+            onConfirm = { valor, descricao ->
+                onEvent(
+                    TelaInicialUiEvent.OnAddEmprestimo(
+                        authService,
+                        it.first,
+                        it.second,
+                        valor,
+                        descricao
+                    )
+                )
+                emprestimoDialog = null
+            }
+        )
     }
 
     Scaffold(
@@ -100,7 +127,7 @@ fun TelaInicialScreen(
                 })
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { dialog = true }) {
+            FloatingActionButton(onClick = { financeiroDialog = true }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
         }
@@ -130,13 +157,16 @@ fun TelaInicialScreen(
                     uiState.financeiros.forEach {
                         FinanceiroCard(
                             modifier = Modifier.combinedClickable(
-                                onClick = { onEvent(TelaInicialUiEvent.OnClick) },
+                                onClick = { navController.navigate(DetalhesFinanceiroScreen) },
                                 onLongClick = {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                     onEvent(TelaInicialUiEvent.OnLongClick(it))
                                 }
                             ),
+                            usuario = uiState.usuario!!,
                             financeiro = it,
+                            onAddCredito = { emprestimoDialog = it to TipoEmprestimo.Credito },
+                            onAddDebito = { emprestimoDialog = it to TipoEmprestimo.Debito }
                         )
                     }
                 }
@@ -178,22 +208,25 @@ fun TelaInicialScreenPreview() {
                         Usuario("1", "", "L", ""),
                         listOf(
                             Emprestimo.Credito(
+                                "2",
                                 Usuario("0", "", "K", ""),
-                                1000.0, "Salário",
+                                BigDecimal(1000.0), "Salário",
                                 0L,
                                 Usuario("1", "", "L", "")
 
                             ),
                             Emprestimo.Debito(
+                                "3",
                                 Usuario("0", "", "K", ""),
-                                1000.0, "Salário",
+                                BigDecimal(1000.0), "Salário",
                                 0L,
                                 Usuario("1", "", "L", "")
 
                             ),
                             Emprestimo.Credito(
+                                "",
                                 Usuario("0", "", "K", ""),
-                                1000.0, "Salário",
+                                BigDecimal(1000.0), "Salário",
                                 0L,
                                 Usuario("1", "", "L", "")
 
