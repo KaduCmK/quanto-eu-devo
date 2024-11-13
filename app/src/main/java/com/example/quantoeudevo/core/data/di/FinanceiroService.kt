@@ -106,18 +106,40 @@ class FinanceiroService @Inject constructor() {
         }
     }
 
-    suspend fun getFinanceiroPorId(id: String): Financeiro {
+    suspend fun getFinanceiroPorId(authService: AuthService, id: String): Financeiro {
         val financeiroRef = db.collection("financeiros")
             .document(id)
-            .get()
-            .await()
-        val dto = financeiroRef.toObject(FinanceiroFirestore::class.java)
+
+        val financeiro = financeiroRef.get().await()
+        val dto = financeiro.toObject(FinanceiroFirestore::class.java)
 
         return Financeiro(
             id = financeiroRef.id,
             criador = dto!!.criador!!,
             outroUsuario = dto.outroUsuario!!,
-            saldo = emptyList(),
+            saldo = financeiroRef.collection("emprestimos").get().await().mapNotNull { emp ->
+                val empDto = emp.toObject(EmprestimoFirestore::class.java)
+
+                if (empDto?.cedente?.uid == authService.getSignedInUser()?.uid)
+                    Emprestimo.Credito(
+                        id = emp.id,
+                        cedente = empDto?.recebedor!!,
+                        outroUsuario = empDto.cedente!!,
+                        valor = empDto.valor!!.toBigDecimal(),
+                        timestamp = empDto.dataHora!!,
+                        descricao = empDto.descricao!!
+                    )
+                else if (empDto?.recebedor?.uid == authService.getSignedInUser()?.uid)
+                    Emprestimo.Debito(
+                        id = emp.id,
+                        outroUsuario = empDto?.cedente!!,
+                        recebedor = empDto.recebedor!!,
+                        valor = empDto.valor!!.toBigDecimal(),
+                        timestamp = empDto.dataHora!!,
+                        descricao = empDto.descricao!!
+                    )
+                else null
+            },
             dataCriacao = dto.dataCriacao!!
         )
     }

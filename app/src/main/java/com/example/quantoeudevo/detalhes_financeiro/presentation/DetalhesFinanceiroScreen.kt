@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.quantoeudevo.auth.data.di.AuthService
 import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
@@ -39,10 +40,11 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Composable
-fun DetalhesFinanceiroScreenRoot(modifier: Modifier = Modifier, id: String) {
+fun DetalhesFinanceiroScreenRoot(modifier: Modifier = Modifier, authService: AuthService, id: String) {
     val viewModel: DetalhesFinanceiroViewModel = hiltViewModel()
     DetalhesFinanceiroScreen(
         modifier = modifier,
+        authService = authService,
         id = id,
         uiState = viewModel.uiState.collectAsState().value,
         onEvent = viewModel::onEvent
@@ -52,12 +54,13 @@ fun DetalhesFinanceiroScreenRoot(modifier: Modifier = Modifier, id: String) {
 @Composable
 fun DetalhesFinanceiroScreen(
     modifier: Modifier = Modifier,
+    authService: AuthService,
     id: String = "",
     uiState: DetalhesFinanceiroUiState,
     onEvent: (DetalhesFinanceiroUiEvent) -> Unit
 ) {
 
-    LaunchedEffect(key1 = Unit) { onEvent(DetalhesFinanceiroUiEvent.OnGetFinanceiro(id)) }
+    LaunchedEffect(key1 = Unit) { onEvent(DetalhesFinanceiroUiEvent.OnGetFinanceiro(authService, id)) }
 
     when (uiState) {
         is DetalhesFinanceiroUiState.Loading -> {
@@ -124,14 +127,15 @@ fun DetalhesFinanceiroScreen(
         }
     }
 }
-
-@Preview(showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun DetalhesFinanceiroScreenPreview() {
-    QuantoEuDevoTheme {
-        DetalhesFinanceiroScreen(
-            uiState = DetalhesFinanceiroUiState.Loading,
-            onEvent = {},
-        )
-    }
-}
+//
+//@Preview(showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+//private fun DetalhesFinanceiroScreenPreview() {
+//    QuantoEuDevoTheme {
+//        DetalhesFinanceiroScreen(
+//            uiState = DetalhesFinanceiroUiState.Loading,
+//            authService = authS,
+//            onEvent = {},
+//        )
+//    }
+//}

@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
                    composable<DetalhesFinanceiroScreen> {
                        val args = it.toRoute<DetalhesFinanceiroScreen>()
-                       DetalhesFinanceiroScreenRoot(id = args.id)
+                       DetalhesFinanceiroScreenRoot(authService = authService, id = args.id)
                    }
                 }
             }

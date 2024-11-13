@@ -31,7 +31,7 @@ class DetalhesFinanceiroViewModel @Inject constructor(
 
                     _uiState.emit(
                         DetalhesFinanceiroUiState.Loaded(
-                            financeiro = financeiroService.getFinanceiroPorId(uiEvent.id)
+                            financeiro = financeiroService.getFinanceiroPorId(uiEvent.authService, uiEvent.id)
                         )
                     )
                 }
