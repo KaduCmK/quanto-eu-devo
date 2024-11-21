@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.platform.LocalContext
-import androidx.credentials.CredentialManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -22,7 +19,8 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject lateinit var authService: AuthService
+    @Inject
+    lateinit var authService: AuthService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +29,10 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             QuantoEuDevoTheme {
-               NavHost(navController = navController, startDestination = TelaInicialScreen) {
-                   composable<AuthScreen> {
-                       AuthScreenRoot(authService = authService, navController = navController)
-                   }
+                NavHost(navController = navController, startDestination = TelaInicialScreen) {
+                    composable<AuthScreen> {
+                        AuthScreenRoot(authService = authService, navController = navController)
+                    }
 
                     composable<TelaInicialScreen> {
                         TelaInicialScreenRoot(
@@ -44,10 +42,13 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                   composable<DetalhesFinanceiroScreen> {
-                       val args = it.toRoute<DetalhesFinanceiroScreen>()
-                       DetalhesFinanceiroScreenRoot(authService = authService, id = args.id)
-                   }
+                    composable<DetalhesFinanceiroScreen> {
+                        val args = it.toRoute<DetalhesFinanceiroScreen>()
+                        DetalhesFinanceiroScreenRoot(
+                            usuario = authService.getSignedInUser(),
+                            id = args.id
+                        )
+                    }
                 }
             }
         }

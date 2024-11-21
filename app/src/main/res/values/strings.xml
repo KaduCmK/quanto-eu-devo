@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Quanto Eu Devo</string>
+    <string name="valor_total">Valor total</string>
 </resources>

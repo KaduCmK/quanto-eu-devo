@@ -1,7 +1,6 @@
 package com.example.quantoeudevo.tela_inicial.presentation
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +37,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.quantoeudevo.AuthScreen
-import com.example.quantoeudevo.DetalhesFinanceiroScreen
 import com.example.quantoeudevo.auth.data.di.AuthService
 import com.example.quantoeudevo.core.data.di.UsuariosService
 import com.example.quantoeudevo.core.data.model.Emprestimo

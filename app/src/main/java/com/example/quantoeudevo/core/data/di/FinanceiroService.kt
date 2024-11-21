@@ -1,28 +1,27 @@
 package com.example.quantoeudevo.core.data.di
 
 import android.util.Log
-import com.example.quantoeudevo.auth.data.di.AuthService
+import com.example.quantoeudevo.core.data.dto.EmprestimoFirestore
 import com.example.quantoeudevo.core.data.dto.FinanceiroFirestore
 import com.example.quantoeudevo.core.data.model.Emprestimo
-import com.example.quantoeudevo.core.data.dto.EmprestimoFirestore
 import com.example.quantoeudevo.core.data.model.Financeiro
 import com.example.quantoeudevo.core.data.model.Usuario
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FinanceiroService @Inject constructor() {
     private val db = FirebaseFirestore.getInstance()
 
-    suspend fun getFinanceiros(authService: AuthService): List<Financeiro> {
+    suspend fun getFinanceiros(usuario: FirebaseUser): List<Financeiro> {
         return try {
             val criadorQuery = db.collection("financeiros")
-                .whereEqualTo("criador.uid", authService.getSignedInUser()?.uid)
+                .whereEqualTo("criador.uid", usuario.uid)
                 .get()
                 .await()
             val outroUsuarioQuery = db.collection("financeiros")
-                .whereEqualTo("outroUsuario.uid", authService.getSignedInUser()?.uid)
+                .whereEqualTo("outroUsuario.uid", usuario.uid)
                 .get()
                 .await()
 
@@ -33,20 +32,20 @@ class FinanceiroService @Inject constructor() {
                 val listEmprestimos = doc.reference.collection("emprestimos").get()
                     .await().documents.mapNotNull { emp ->
                         val empDto = emp.toObject(EmprestimoFirestore::class.java)
-                        if (empDto?.cedente?.uid == authService.getSignedInUser()?.uid)
+                        if (empDto?.cedente?.uid == usuario.uid)
                             Emprestimo.Credito(
                                 id = emp.id,
-                                cedente = empDto?.recebedor!!,
-                                outroUsuario = empDto.cedente!!,
+                                cedente = empDto.recebedor!!,
+                                outroUsuario = empDto.cedente,
                                 valor = empDto.valor!!.toBigDecimal(),
                                 timestamp = empDto.dataHora!!,
                                 descricao = empDto.descricao!!
                             )
-                        else if (empDto?.recebedor?.uid == authService.getSignedInUser()?.uid)
+                        else if (empDto?.recebedor?.uid == usuario.uid)
                             Emprestimo.Debito(
                                 id = emp.id,
-                                outroUsuario = empDto?.cedente!!,
-                                recebedor = empDto.recebedor!!,
+                                outroUsuario = empDto.cedente!!,
+                                recebedor = empDto.recebedor,
                                 valor = empDto.valor!!.toBigDecimal(),
                                 timestamp = empDto.dataHora!!,
                                 descricao = empDto.descricao!!
@@ -69,20 +68,20 @@ class FinanceiroService @Inject constructor() {
                 val listEmprestimos = doc.reference.collection("emprestimos").get()
                     .await().documents.mapNotNull { emp ->
                         val empDto = emp.toObject(EmprestimoFirestore::class.java)
-                        if (empDto?.cedente?.uid == authService.getSignedInUser()?.uid)
+                        if (empDto?.cedente?.uid == usuario.uid)
                             Emprestimo.Credito(
                                 id = emp.id,
-                                cedente = empDto?.recebedor!!,
-                                outroUsuario = empDto.cedente!!,
+                                cedente = empDto.recebedor!!,
+                                outroUsuario = empDto.cedente,
                                 valor = empDto.valor!!.toBigDecimal(),
                                 timestamp = empDto.dataHora!!,
                                 descricao = empDto.descricao!!
                             )
-                        else if (empDto?.recebedor?.uid == authService.getSignedInUser()?.uid)
+                        else if (empDto?.recebedor?.uid == usuario.uid)
                             Emprestimo.Debito(
                                 id = emp.id,
-                                outroUsuario = empDto?.cedente!!,
-                                recebedor = empDto.recebedor!!,
+                                outroUsuario = empDto.cedente!!,
+                                recebedor = empDto.recebedor,
                                 valor = empDto.valor!!.toBigDecimal(),
                                 timestamp = empDto.dataHora!!,
                                 descricao = empDto.descricao!!
@@ -106,7 +105,7 @@ class FinanceiroService @Inject constructor() {
         }
     }
 
-    suspend fun getFinanceiroPorId(authService: AuthService, id: String): Financeiro {
+    suspend fun getFinanceiroPorId(currentUser: FirebaseUser, id: String): Financeiro {
         val financeiroRef = db.collection("financeiros")
             .document(id)
 
@@ -120,20 +119,20 @@ class FinanceiroService @Inject constructor() {
             saldo = financeiroRef.collection("emprestimos").get().await().mapNotNull { emp ->
                 val empDto = emp.toObject(EmprestimoFirestore::class.java)
 
-                if (empDto?.cedente?.uid == authService.getSignedInUser()?.uid)
+                if (empDto.cedente?.uid == currentUser.uid)
                     Emprestimo.Credito(
                         id = emp.id,
-                        cedente = empDto?.recebedor!!,
-                        outroUsuario = empDto.cedente!!,
+                        cedente = empDto.recebedor!!,
+                        outroUsuario = empDto.cedente,
                         valor = empDto.valor!!.toBigDecimal(),
                         timestamp = empDto.dataHora!!,
                         descricao = empDto.descricao!!
                     )
-                else if (empDto?.recebedor?.uid == authService.getSignedInUser()?.uid)
+                else if (empDto.recebedor?.uid == currentUser.uid)
                     Emprestimo.Debito(
                         id = emp.id,
-                        outroUsuario = empDto?.cedente!!,
-                        recebedor = empDto.recebedor!!,
+                        outroUsuario = empDto.cedente!!,
+                        recebedor = empDto.recebedor,
                         valor = empDto.valor!!.toBigDecimal(),
                         timestamp = empDto.dataHora!!,
                         descricao = empDto.descricao!!
@@ -167,7 +166,7 @@ class FinanceiroService @Inject constructor() {
 //            snapshot.documents.forEach { doc ->
 //                val emprestimoFirestore = doc.toObject(EmprestimoFirestore::class.java)
 //                emprestimoFirestore?.let { empDto ->
-//                    val emprestimo = if (empDto.cedente?.uid == authService.getSignedInUser()?.uid)
+//                    val emprestimo = if (empDto.cedente?.uid == usuario.uid)
 //                        Emprestimo.Credito(
 //                            id = doc.id,
 //                            cedente = empDto.recebedor!!,
@@ -176,7 +175,7 @@ class FinanceiroService @Inject constructor() {
 //                            timestamp = empDto.dataHora!!,
 //                            descricao = empDto.descricao!!
 //                        )
-//                    else if (empDto.recebedor?.uid == authService.getSignedInUser()?.uid)
+//                    else if (empDto.recebedor?.uid == usuario.uid)
 //                        Emprestimo.Debito(
 //                            id = doc.id,
 //                            outroUsuario = empDto.cedente!!,

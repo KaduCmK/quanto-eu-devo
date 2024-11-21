@@ -7,19 +7,18 @@ import com.example.quantoeudevo.core.data.di.FinanceiroService
 import com.example.quantoeudevo.core.data.di.UsuariosService
 import com.example.quantoeudevo.core.data.dto.EmprestimoFirestore
 import com.example.quantoeudevo.core.data.dto.FinanceiroFirestore
-import com.example.quantoeudevo.core.data.model.Emprestimo
 import com.example.quantoeudevo.core.data.model.TipoEmprestimo
 import com.example.quantoeudevo.core.data.model.Usuario
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiEvent
 import com.example.quantoeudevo.tela_inicial.data.model.TelaInicialUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,7 +45,7 @@ class TelaInicialViewModel @Inject constructor(
                             TelaInicialUiState.Loaded(
                                 usuario = Usuario(uiEvent.authService.getSignedInUser()!!),
                                 usuarios = emptyList(),
-                                financeiros = financeiroService.getFinanceiros(uiEvent.authService)
+                                financeiros = financeiroService.getFinanceiros(uiEvent.authService.getSignedInUser()!!)
                             )
                         )
                     }
@@ -68,12 +67,12 @@ class TelaInicialViewModel @Inject constructor(
                     val financeiro = FinanceiroFirestore(
                         criador = (_uiState.value as TelaInicialUiState.Loaded).usuario!!,
                         outroUsuario = uiEvent.outroUsuario,
-                        dataCriacao = System.currentTimeMillis()
+                        dataCriacao = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
                     )
                     financeiroService.addFinanceiro(financeiro)
                     _uiState.update {
                         (it as TelaInicialUiState.Loaded).copy(
-                            financeiros = financeiroService.getFinanceiros(uiEvent.authService)
+                            financeiros = financeiroService.getFinanceiros(uiEvent.authService.getSignedInUser()!!)
                         )
                     }
                 }
@@ -91,7 +90,7 @@ class TelaInicialViewModel @Inject constructor(
                                 recebedor = outroUsuario,
                                 valor = uiEvent.valor.toString(),
                                 descricao = uiEvent.descricao,
-                                dataHora = System.currentTimeMillis(),
+                                dataHora = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
                                 tipoTransacao = "CREDITO"
                             )
                         else EmprestimoFirestore(
@@ -99,14 +98,14 @@ class TelaInicialViewModel @Inject constructor(
                             recebedor = (_uiState.value as TelaInicialUiState.Loaded).usuario!!,
                             valor = uiEvent.valor.toString(),
                             descricao = uiEvent.descricao,
-                            dataHora = System.currentTimeMillis(),
+                            dataHora = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC),
                             tipoTransacao = "DEBITO"
                         )
 
                     financeiroService.addEmprestimoToFinanceiro(uiEvent.financeiro.id, emprestimo)
                     _uiState.update {
                         (it as TelaInicialUiState.Loaded).copy(
-                            financeiros = financeiroService.getFinanceiros(uiEvent.authService)
+                            financeiros = financeiroService.getFinanceiros(uiEvent.authService.getSignedInUser()!!)
                         )
                     }
                 }
